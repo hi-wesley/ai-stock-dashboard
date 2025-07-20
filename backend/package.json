@@ -1,0 +1,20 @@
+{
+  "name": "ai-stock-backend",
+  "type": "module",
+  "version": "1.0.0",
+  "main": "src/index.js",
+  "scripts": {
+    "start": "node src/index.js",
+    "dev": "nodemon src/index.js"
+  },
+  "dependencies": {
+    "cors": "^2.8.5",
+    "dotenv": "^16.4.5",
+    "express": "^4.19.0",
+    "openai": "^4.24.0",
+    "yahoo-finance2": "^2.6.0"
+  },
+  "devDependencies": {
+    "nodemon": "^3.0.3"
+  }
+}

@@ -1,0 +1,38 @@
+<div class="controls">
+    <label>Range
+        <select [formControl]="range">
+            <option value="1d">1 Day</option>
+            <option value="1mo">1 Month</option>
+            <option value="6mo">6 Months</option>
+            <option value="1y">1 Year</option>
+        </select>
+    </label>
+
+    <label>Interval
+        <select [formControl]="interval">
+            <option value="5m">5 min</option>
+            <option value="1d">1 day</option>
+            <option value="1wk">1 week</option>
+        </select>
+    </label>
+</div>
+
+<!-- VIRTUAL SCROLL keeps DOM small even if we render dozens of charts -->
+<cdk-virtual-scroll-viewport itemSize="500" class="viewport">
+    <div *cdkVirtualFor="let sym of symbols">
+        <h2>{{sym}} price</h2>
+
+        <app-line-chart [symbol]="sym" [data]="priceSeries.get(sym) | async">
+        </app-line-chart>
+
+        <!-- Simple chat UI -->
+        <div class="chat">
+            <input placeholder="Ask about {{sym}}…" [formControl]="question">
+            <button (click)="ask(sym)">Ask AI</button>
+
+            <p class="answer" *ngIf="answer$ | async as ans">{{ans}}</p>
+        </div>
+
+        <hr>
+    </div>
+</cdk-virtual-scroll-viewport>

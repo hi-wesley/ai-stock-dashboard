@@ -1,0 +1,8 @@
+/* Make the virtual‑scroll area fill the rest of the screen */
+.viewport {
+    height: calc(100vh - 60px);
+    /* 60 px ≈ height of the toolbar */
+    display: block;
+    /* ensures the element occupies space */
+    padding: 1rem 0;
+}
