@@ -13,67 +13,72 @@ import { PricePoint } from '../core/models/price-point';
   changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class DashboardComponent implements OnInit {
-  /** User-selected tickers */
-  symbols: string[] = [];
+  /* ----------------------- config ----------------------- */
+  readonly RANGE    = '1mo';
+  readonly INTERVAL = '1d';
 
-  /** Fixed range / interval (adjust if desired) */
-  private readonly RANGE = '1mo';
-  private readonly INTERVAL = '1d';
+  /* ----------------------- state ------------------------ */
+  symbols: string[] = [];                                    // dynamic list
+  priceSeries = new Map<string, Observable<PricePoint[]>>(); // chart data
+  questionMap = new Map<string, FormControl>();              // one input per row
+  answerMap   = new Map<string, Observable<string>>();       // one answer stream
 
-  /** Map<ticker, Observable<PricePoint[]>> */
-  priceSeries = new Map<string, Observable<PricePoint[]>>();
+  /* search bar */
+  search = new FormControl('');
 
-  /* ---------------- form controls ---------------- */
-  search   = new FormControl('');
-  question = new FormControl('');
-  answer$?: Observable<string>;
-
-  constructor(private stocks: StockService, private chat: ChatService) {}
+  constructor(
+    private stocks: StockService,
+    private chat: ChatService
+  ) {}
 
   ngOnInit(): void {
-    /* Optionally preload a few tickers */
-    ['NVDA', 'GOOGL', 'SCHG'].forEach(t => this.fetchSeries(t));
+    /* preload a few tickers */
+    ['NVDA', 'GOOGL', 'SCHG'].forEach(t => this.addSymbol(t));
   }
 
-  /* ---------- add / remove tickers ---------- */
-  addSymbol(): void {
-    const sym = this.search.value?.trim().toUpperCase();
+  /* ---------------- add / remove symbols ---------------- */
+  addSymbol(ticker?: string): void {
+    const sym = (ticker ?? this.search.value)?.trim().toUpperCase();
     if (!sym || this.symbols.includes(sym)) return;
 
-    this.symbols = [...this.symbols, sym];  // new reference for OnPush
-    this.fetchSeries(sym);
+    /* update list & create per-row controls */
+    this.symbols = [...this.symbols, sym];       // new reference → OnPush refresh
+    this.questionMap.set(sym, new FormControl(''));
+
+    /* fetch history (slice -100 to keep payload small) */
+    const obs = this.stocks
+      .getHistory(sym, this.RANGE, this.INTERVAL)
+      .pipe(map(arr => arr.slice(-100)));
+
+    this.priceSeries.set(sym, obs);
     this.search.reset();
   }
 
   removeSymbol(sym: string): void {
-    this.symbols = this.symbols.filter(s => s !== sym);
+    this.symbols      = this.symbols.filter(s => s !== sym);
     this.priceSeries.delete(sym);
+    this.questionMap .delete(sym);
+    this.answerMap   .delete(sym);
   }
 
-  /* ---------- data fetch ---------- */
-  private fetchSeries(sym: string): void {
-    const obs = this.stocks
-      .getHistory(sym, this.RANGE, this.INTERVAL)
-      .pipe(map(list => list.slice(-100)));   // send ≤100 pts to AI
-
-    this.priceSeries.set(sym, obs);
-  }
-
-  /* ---------- chat ---------- */
+  /* -------------------------- chat -------------------------- */
   ask(sym: string): void {
-    const q = this.question.value?.trim();
+    const control = this.questionMap.get(sym);
+    if (!control) return;
+
+    const q = control.value?.trim();
     if (!q) return;
 
     const series$ = this.priceSeries.get(sym) ?? of([]);
-    this.answer$ = series$.pipe(
+
+    const ans$ = series$.pipe(
       switchMap(series =>
-        this.chat.ask(q, {
-          symbol: sym,
-          range: this.RANGE,
-          series
-        })
+        this.chat.ask(q, { symbol: sym, range: this.RANGE, series })
       ),
       map(r => r.answer)
     );
+
+    this.answerMap.set(sym, ans$);
+    control.reset();                    // clear the input after sending
   }
 }

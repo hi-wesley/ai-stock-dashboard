@@ -1,10 +1,10 @@
-<!-- Search box -->
+<!-- search bar -->
 <div class="search">
     <input placeholder="Enter ticker (e.g. TSLA)" [formControl]="search" />
     <button (click)="addSymbol()">Add</button>
 </div>
 
-<!-- Scrollable list of charts -->
+<!-- scrollable list of charts -->
 <cdk-virtual-scroll-viewport itemSize="500" class="viewport" style="height: calc(100vh - 80px); display: block;">
 
     <div *cdkVirtualFor="let sym of symbols">
@@ -24,10 +24,14 @@
             </p>
         </ng-template>
 
+        <!-- per-symbol chat -->
         <div class="chat">
-            <input placeholder="Ask about {{ sym }}…" [formControl]="question" />
+            <input placeholder="Ask about {{ sym }}…" [formControl]="questionMap.get(sym)" />
             <button (click)="ask(sym)">Ask AI</button>
-            <p class="answer" *ngIf="answer$ | async as ans">{{ ans }}</p>
+
+            <p class="answer" *ngIf="(answerMap.get(sym) | async) as ans">
+                {{ ans }}
+            </p>
         </div>
 
         <hr />
