@@ -1,38 +1,35 @@
-<div class="controls">
-    <label>Range
-        <select [formControl]="range">
-            <option value="1d">1 Day</option>
-            <option value="1mo">1 Month</option>
-            <option value="6mo">6 Months</option>
-            <option value="1y">1 Year</option>
-        </select>
-    </label>
-
-    <label>Interval
-        <select [formControl]="interval">
-            <option value="5m">5 min</option>
-            <option value="1d">1 day</option>
-            <option value="1wk">1 week</option>
-        </select>
-    </label>
+<!-- Search box -->
+<div class="search">
+    <input placeholder="Enter ticker (e.g. TSLA)" [formControl]="search" />
+    <button (click)="addSymbol()">Add</button>
 </div>
 
-<!-- VIRTUAL SCROLL keeps DOM small even if we render dozens of charts -->
-<cdk-virtual-scroll-viewport itemSize="500" class="viewport">
+<!-- Scrollable list of charts -->
+<cdk-virtual-scroll-viewport itemSize="500" class="viewport" style="height: calc(100vh - 80px); display: block;">
+
     <div *cdkVirtualFor="let sym of symbols">
-        <h2>{{sym}} price</h2>
+        <h2>
+            {{ sym }} price
+            <button class="remove" (click)="removeSymbol(sym)">✖</button>
+        </h2>
 
-        <app-line-chart [symbol]="sym" [data]="priceSeries.get(sym) | async">
-        </app-line-chart>
+        <ng-container *ngIf="(priceSeries.get(sym) | async) as pts">
+            <app-line-chart *ngIf="pts.length > 1; else noData" [symbol]="sym" [data]="pts">
+            </app-line-chart>
+        </ng-container>
 
-        <!-- Simple chat UI -->
+        <ng-template #noData>
+            <p style="color: gray; margin: 2rem 0">
+                Not enough data for this symbol.
+            </p>
+        </ng-template>
+
         <div class="chat">
-            <input placeholder="Ask about {{sym}}…" [formControl]="question">
+            <input placeholder="Ask about {{ sym }}…" [formControl]="question" />
             <button (click)="ask(sym)">Ask AI</button>
-
-            <p class="answer" *ngIf="answer$ | async as ans">{{ans}}</p>
+            <p class="answer" *ngIf="answer$ | async as ans">{{ ans }}</p>
         </div>
 
-        <hr>
+        <hr />
     </div>
 </cdk-virtual-scroll-viewport>

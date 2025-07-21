@@ -1,11 +1,10 @@
 import { ChangeDetectionStrategy, Component, OnInit } from '@angular/core';
+import { FormControl } from '@angular/forms';
+import { Observable, of, switchMap, map } from 'rxjs';
+
 import { StockService } from '../core/services/stock.service';
 import { ChatService } from '../core/services/chat.service';
-import { combineLatest, map, Observable, of, startWith, switchMap } from 'rxjs';
 import { PricePoint } from '../core/models/price-point';
-import { FormControl } from '@angular/forms';
-
-type Symbol = 'GOOGL' | 'NVDA' | 'SCHG';
 
 @Component({
   selector: 'app-dashboard',
@@ -14,50 +13,67 @@ type Symbol = 'GOOGL' | 'NVDA' | 'SCHG';
   changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class DashboardComponent implements OnInit {
-  readonly symbols: Symbol[] = ['GOOGL', 'NVDA', 'SCHG'];
-  range    = new FormControl('1mo');
-  interval = new FormControl('1d');
+  /** User-selected tickers */
+  symbols: string[] = [];
 
-  priceSeries = new Map<Symbol, Observable<PricePoint[]>>();
+  /** Fixed range / interval (adjust if desired) */
+  private readonly RANGE = '1mo';
+  private readonly INTERVAL = '1d';
 
-  // Chat
+  /** Map<ticker, Observable<PricePoint[]>> */
+  priceSeries = new Map<string, Observable<PricePoint[]>>();
+
+  /* ---------------- form controls ---------------- */
+  search   = new FormControl('');
   question = new FormControl('');
   answer$?: Observable<string>;
 
   constructor(private stocks: StockService, private chat: ChatService) {}
 
-  ngOnInit() {
-    this.loadData();   // initial fetch
-
-    // React to either dropdown instantly
-    combineLatest([
-      this.range.valueChanges.pipe(startWith(this.range.value)),
-      this.interval.valueChanges.pipe(startWith(this.interval.value))
-    ]).subscribe(() => this.loadData());
+  ngOnInit(): void {
+    /* Optionally preload a few tickers */
+    ['NVDA', 'GOOGL', 'SCHG'].forEach(t => this.fetchSeries(t));
   }
 
-  private loadData() {
-    this.symbols.forEach(sym => {
-      this.priceSeries.set(
-        sym,
-        this.stocks.getHistory(sym, this.range.value!, this.interval.value!)
-      );
-    });
+  /* ---------- add / remove tickers ---------- */
+  addSymbol(): void {
+    const sym = this.search.value?.trim().toUpperCase();
+    if (!sym || this.symbols.includes(sym)) return;
+
+    this.symbols = [...this.symbols, sym];  // new reference for OnPush
+    this.fetchSeries(sym);
+    this.search.reset();
   }
 
-  ask(sym: Symbol) {
-    if (!this.question.value?.trim()) return;
+  removeSymbol(sym: string): void {
+    this.symbols = this.symbols.filter(s => s !== sym);
+    this.priceSeries.delete(sym);
+  }
+
+  /* ---------- data fetch ---------- */
+  private fetchSeries(sym: string): void {
+    const obs = this.stocks
+      .getHistory(sym, this.RANGE, this.INTERVAL)
+      .pipe(map(list => list.slice(-100)));   // send ≤100 pts to AI
+
+    this.priceSeries.set(sym, obs);
+  }
+
+  /* ---------- chat ---------- */
+  ask(sym: string): void {
+    const q = this.question.value?.trim();
+    if (!q) return;
 
     const series$ = this.priceSeries.get(sym) ?? of([]);
     this.answer$ = series$.pipe(
       switchMap(series =>
-        this.chat.ask(this.question.value!, {
+        this.chat.ask(q, {
           symbol: sym,
-          range: this.range.value!,
+          range: this.RANGE,
           series
         })
       ),
-      map(res => res.answer)
+      map(r => r.answer)
     );
   }
 }
