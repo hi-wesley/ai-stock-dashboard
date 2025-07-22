@@ -1,5 +1,7 @@
 # AI Stock Dashboard
 
+![Screenshot](https://imgur.com/a/IoNahP7)
+
 ## Project Overview
 
 The AI Stock Dashboard is a web-based application designed to provide users with a powerful tool for stock analysis, leveraging the capabilities of AI to offer insights and answer questions about stock performance. The dashboard allows users to track multiple stock symbols, view historical price data across different time ranges, and interact with an AI-powered chat to gain deeper insights into the data.
@@ -88,5 +90,4 @@ Once the application is running, you can perform the following actions:
 *   **Ask the AI a question**: Type a question into the chat input (e.g., "What was the highest price in the last month?") and click "Ask AI".
 
 ## License
-
-This project is licensed under the **MIT License**.
+This repository is provided under the [MIT License](LICENSE).
