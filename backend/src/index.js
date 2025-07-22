@@ -19,11 +19,13 @@ app.use(express.json());
 app.get('/api/stocks/:symbol', async (req, res) => {
   /**
    * URL format:
-   *   /api/stocks/NVDA?range=1d&interval=5m
+   *   /api/stocks/GOOGL?range=1d&interval=5m
    * Defaults are 1 month / 1‑day candles.
    */
   const {symbol} = req.params;
   const {range = '1mo', interval = '1d'} = req.query;
+
+  console.log(`[server] Received request for ${symbol} with range=${range}, interval=${interval}`);
 
   try {
     const data = await getHistory(symbol, range, interval);

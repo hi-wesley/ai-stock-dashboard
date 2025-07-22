@@ -35,8 +35,8 @@ export class DashboardComponent implements OnInit {
   ) {}
 
   ngOnInit(): void {
-    /* ✨ only preload NVDA */
-    this.addSymbol('NVDA');
+    /* ✨ only preload GOOGL */
+    this.addSymbol('GOOGL');
   }
 
   /* ------------- add / remove symbols ------------- */
@@ -45,7 +45,7 @@ export class DashboardComponent implements OnInit {
     if (!sym || this.symbols.includes(sym)) return;
 
     this.symbols = [...this.symbols, sym];    // new reference → OnPush
-    this.rangeMap.set(sym, '1mo');            // default
+    this.rangeMap.set(sym, '1y');            // default
     this.questionMap.set(sym, new FormControl(''));
 
     this.fetchSeries(sym);
@@ -75,13 +75,13 @@ export class DashboardComponent implements OnInit {
   /** Simple heuristic mapping range → interval */
   private pickInterval(r: Range): string {
     switch (r) {
-      case '1d':  return '5m';
+      case '1d':  return '2m';
       case '5d':  return '15m';
-      case '1mo': return '1d';
+      case '1mo': return '1h';
       case '6mo': return '1d';
       case '1y':  return '1wk';
-      case '5y':  return '1wk';
-      case 'max': return '1mo';
+      case '5y':  return '1mo';
+      case 'max': return '3mo';
     }
   }
 

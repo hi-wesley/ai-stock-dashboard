@@ -16,14 +16,14 @@ import { PricePoint } from '../../core/models/price-point';
 export class LineChartComponent {
   /** Array of candles for a single stock symbol */
   @Input() data: PricePoint[] | null | undefined = [];
-  /** The stock ticker (e.g. "NVDA") used for the legend/tooltip label */
+  /** The stock ticker (e.g. "GOOGL") used for the legend/tooltip label */
   @Input() symbol = '';
 
   /**
    * ngx‑charts needs:
    * [
    *   {
-   *     name: 'NVDA',
+   *     name: 'GOOGL',
    *     series: [
    *       { name: Date, value: closePrice },
    *       …
