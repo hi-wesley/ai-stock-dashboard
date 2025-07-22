@@ -1,18 +1,26 @@
 <!-- search bar -->
 <div class="search">
-    <input placeholder="Enter ticker (e.g. TSLA)" [formControl]="search" />
+    <!-- ✨ placeholder now uses NVDA -->
+    <input placeholder="Enter ticker (e.g. NVDA)" [formControl]="search" />
     <button (click)="addSymbol()">Add</button>
 </div>
 
-<!-- scrollable list of charts -->
-<cdk-virtual-scroll-viewport itemSize="500" class="viewport" style="height: calc(100vh - 80px); display: block;">
+<cdk-virtual-scroll-viewport itemSize="560" class="viewport" style="height: calc(100vh - 90px); display: block;">
 
     <div *cdkVirtualFor="let sym of symbols">
-        <h2>
+        <h2 class="row-header">
             {{ sym }} price
             <button class="remove" (click)="removeSymbol(sym)">✖</button>
         </h2>
 
+        <!-- range toggle bar -->
+        <div class="range-bar">
+            <button *ngFor="let r of ranges" [class.active]="rangeMap.get(sym) === r" (click)="setRange(sym, r)">
+                {{ r }}
+            </button>
+        </div>
+
+        <!-- chart -->
         <ng-container *ngIf="(priceSeries.get(sym) | async) as pts">
             <app-line-chart *ngIf="pts.length > 1; else noData" [symbol]="sym" [data]="pts">
             </app-line-chart>
@@ -20,11 +28,11 @@
 
         <ng-template #noData>
             <p style="color: gray; margin: 2rem 0">
-                Not enough data for this symbol.
+                Not enough data for this symbol / range.
             </p>
         </ng-template>
 
-        <!-- per-symbol chat -->
+        <!-- chat -->
         <div class="chat">
             <input placeholder="Ask about {{ sym }}…" [formControl]="questionMap.get(sym)" />
             <button (click)="ask(sym)">Ask AI</button>
