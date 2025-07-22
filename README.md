@@ -21,6 +21,7 @@ The primary goal of this project is to create a responsive, user-friendly interf
 *   **Node.js**: A JavaScript runtime for building the server-side application.
 *   **Express**: A fast and minimalist web framework for Node.js, used to create the REST API.
 *   **yahoo-finance2**: A library for fetching historical stock data from Yahoo Finance.
+*   [yahoo-finance2 docs](https://github.com/gadicc/node-yahoo-finance2/blob/devel/docs/modules/chart.md)
 *   **OpenAI API**: Used for the AI-powered chat functionality.
 
 ### Frontend
@@ -82,10 +83,10 @@ The primary goal of this project is to create a responsive, user-friendly interf
 
 Once the application is running, you can perform the following actions:
 
-*   **Add a stock**: Enter a stock symbol (e.g., `GOOGL`, `SCHG`) in the search bar and click "Add".
+*   **Add a stock**: Enter a stock symbol (e.g., `GOOGL`, `NVDA`, `SCHG`) in the search bar and click "Add".
 *   **Change the time range**: Click on the time range buttons (e.g., `1d`, `1y`, `max`) to view different historical data.
 *   **Ask the AI a question**: Type a question into the chat input (e.g., "What was the highest price in the last month?") and click "Ask AI".
 
 ## License
 
-This project is licensed under the **MIT License**. See the [LICENSE](LICENSE) file for more details.
+This project is licensed under the **MIT License**.
