@@ -1,6 +1,6 @@
 # AI Stock Dashboard
 
-![Screenshot](https://imgur.com/i7MO8MP)
+![Screenshot](https://i.imgur.com/i7MO8MP.png)
 
 ## Project Overview
 
