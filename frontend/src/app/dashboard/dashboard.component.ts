@@ -7,7 +7,7 @@ import { ChatService } from '../core/services/chat.service';
 import { PricePoint } from '../core/models/price-point';
 
 type Range =
-  | '1d' | '5d' | '1mo' | '6mo' | '1y' | '5y' | 'max';
+  | '5d' | '1mo' | '6mo' | '1y' | '5y' | 'max';
 
 @Component({
   selector: 'app-dashboard',
@@ -27,7 +27,17 @@ export class DashboardComponent implements OnInit {
   search = new FormControl('');
 
   /* fixed order of range buttons */
-  readonly ranges: Range[] = ['1d', '5d', '1mo', '6mo', '1y', '5y', 'max'];
+  readonly ranges: Range[] = ['5d', '1mo', '6mo', '1y', '5y', 'max'];
+
+  /* display labels for range buttons */
+  readonly rangeLabels: Record<Range, string> = {
+    '5d': '1 Day', 
+    '1mo': '1 Week',
+    '6mo': '6 Months',
+    '1y': '1 Year',
+    '5y': '5 Years',
+    'max': 'All Time'
+  };
 
   constructor(
     private stocks: StockService,
@@ -75,7 +85,6 @@ export class DashboardComponent implements OnInit {
   /** Simple heuristic mapping range → interval */
   private pickInterval(r: Range): string {
     switch (r) {
-      case '1d':  return '2m';
       case '5d':  return '15m';
       case '1mo': return '1h';
       case '6mo': return '1d';

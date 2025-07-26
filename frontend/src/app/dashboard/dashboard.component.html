@@ -16,7 +16,7 @@
         <!-- range toggle bar -->
         <div class="range-bar">
             <button *ngFor="let r of ranges" [class.active]="rangeMap.get(sym) === r" (click)="setRange(sym, r)">
-                {{ r }}
+                {{ rangeLabels[r] }}
             </button>
         </div>
 
