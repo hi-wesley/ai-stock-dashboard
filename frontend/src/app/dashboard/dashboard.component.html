@@ -1,47 +1,52 @@
 <!-- search bar -->
 <div class="search">
-    <!-- ✨ placeholder now uses GOOGL -->
-    <input placeholder="Enter ticker (e.g. GOOGL)" [formControl]="search" />
-    <button (click)="addSymbol()">Add</button>
+  <!-- ✨ placeholder now uses GOOGL -->
+  <input placeholder="Enter ticker (e.g. GOOGL)" [formControl]="search" />
+  <button (click)="addSymbol()">Add</button>
 </div>
 
 <cdk-virtual-scroll-viewport itemSize="560" class="viewport" style="height: calc(100vh - 90px); display: block;">
 
-    <div *cdkVirtualFor="let sym of symbols">
-        <h2 class="row-header">
-            {{ sym }} price
-            <button class="remove" (click)="removeSymbol(sym)">✖</button>
-        </h2>
+  <div *cdkVirtualFor="let sym of symbols">
+    <h2 class="row-header">
+      {{ sym }} price
+      <button class="remove" (click)="removeSymbol(sym)">✖</button>
+    </h2>
 
-        <!-- range toggle bar -->
-        <div class="range-bar">
-            <button *ngFor="let r of ranges" [class.active]="rangeMap.get(sym) === r" (click)="setRange(sym, r)">
-                {{ rangeLabels[r] }}
-            </button>
-        </div>
-
-        <!-- chart -->
-        <ng-container *ngIf="(priceSeries.get(sym) | async) as pts">
-            <app-line-chart *ngIf="pts.length > 1; else noData" [symbol]="sym" [data]="pts">
-            </app-line-chart>
-        </ng-container>
-
-        <ng-template #noData>
-            <p style="color: gray; margin: 2rem 0">
-                Not enough data for this symbol / range.
-            </p>
-        </ng-template>
-
-        <!-- chat -->
-        <div class="chat">
-            <input placeholder="Ask about {{ sym }}…" [formControl]="questionMap.get(sym)" />
-            <button (click)="ask(sym)">Ask AI</button>
-
-            <p class="answer" *ngIf="(answerMap.get(sym) | async) as ans">
-                {{ ans }}
-            </p>
-        </div>
-
-        <hr />
+    <!-- range toggle bar -->
+    <div class="range-bar">
+      @for (r of ranges; track r) {
+        <button [class.active]="rangeMap.get(sym) === r" (click)="setRange(sym, r)">
+          {{ rangeLabels[r] }}
+        </button>
+      }
     </div>
+
+    <!-- chart -->
+    @if ((priceSeries.get(sym) | async); as pts) {
+      @if (pts.length > 1) {
+        <app-line-chart [symbol]="sym" [data]="pts">
+        </app-line-chart>
+      } @else {
+        <p style="color: gray; margin: 2rem 0">
+          Not enough data for this symbol / range.
+        </p>
+      }
+    }
+
+
+    <!-- chat -->
+    <div class="chat">
+      <input placeholder="Ask about {{ sym }}…" [formControl]="questionMap.get(sym)" />
+      <button (click)="ask(sym)">Ask AI</button>
+
+      @if ((answerMap.get(sym) | async); as ans) {
+        <p class="answer">
+          {{ ans }}
+        </p>
+      }
+    </div>
+
+    <hr />
+  </div>
 </cdk-virtual-scroll-viewport>
