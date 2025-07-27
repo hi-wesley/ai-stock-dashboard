@@ -5,7 +5,8 @@ import { Component } from '@angular/core';
  * Must live in src/app so ./app.module.ts resolves the import.
  */
 @Component({
-  selector: 'app-root',
-  template: '<app-dashboard></app-dashboard>'
+    selector: 'app-root',
+    template: '<app-dashboard></app-dashboard>',
+    standalone: false
 })
 export class AppComponent {}

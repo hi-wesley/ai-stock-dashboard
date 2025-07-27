@@ -8,10 +8,11 @@ import { PricePoint } from '../../core/models/price-point';
  * when @Input values actually change.
  */
 @Component({
-  selector: 'app-line-chart',
-  templateUrl: './line-chart.component.html',
-  styleUrls: ['./line-chart.component.scss'],
-  changeDetection: ChangeDetectionStrategy.OnPush
+    selector: 'app-line-chart',
+    templateUrl: './line-chart.component.html',
+    styleUrls: ['./line-chart.component.scss'],
+    changeDetection: ChangeDetectionStrategy.OnPush,
+    standalone: false
 })
 export class LineChartComponent {
   /** Array of candles for a single stock symbol */
