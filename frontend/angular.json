@@ -53,11 +53,11 @@
         "serve": {
           "builder": "@angular-devkit/build-angular:dev-server",
           "options": {
-            "browserTarget": "ai-stock-frontend:build"
+            "buildTarget": "ai-stock-frontend:build"
           },
           "configurations": {
             "production": {
-              "browserTarget": "ai-stock-frontend:build:production"
+              "buildTarget": "ai-stock-frontend:build:production"
             }
           }
         },
