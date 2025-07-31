@@ -11,8 +11,10 @@
     <div *cdkVirtualFor="let sym of symbols" class="chart-section">
       <div class="glass" style="width: 100%; max-width: 800px; margin: 1rem auto; position: relative;">
         <button class="remove" style="position: absolute; top: 1rem; right: 1rem;" (click)="removeSymbol(sym)">✖</button>
-        <h2 class="row-header">
-          {{ sym }}
+        <h2 class="row-header split-text">
+          <span *ngFor="let char of sym.split(''); let i = index" 
+                class="split-char" 
+                [style.animation-delay.ms]="i * 50">{{ char }}</span>
         </h2>
 
         <!-- range toggle bar -->

@@ -9,13 +9,15 @@ import { AppComponent } from './app.component';
 import { DashboardComponent } from './dashboard/dashboard.component';
 import { LineChartComponent } from './shared/visualize/line-chart.component';
 import { AuroraBackgroundComponent } from './shared/aurora-background/aurora-background.component';
+import { SplitTextDirective } from './shared/directives/split-text.directive';
 
 @NgModule({
   declarations: [
     AppComponent,
     DashboardComponent,
     LineChartComponent,
-    AuroraBackgroundComponent
+    AuroraBackgroundComponent,
+    SplitTextDirective
   ],
   imports: [
     BrowserModule,
