@@ -2,7 +2,7 @@
   <!-- search bar -->
   <div class="search glass">
     <!-- ✨ placeholder now uses GOOGL -->
-    <input placeholder="Enter ticker (e.g. GOOGL)" [formControl]="search" />
+    <input placeholder="Enter ticker (e.g. GOOGL)" [formControl]="search" (keyup.enter)="addSymbol()" />
     <button (click)="addSymbol()">Add</button>
   </div>
 
@@ -20,32 +20,41 @@
         <!-- range toggle bar -->
         <div class="range-bar">
           @for (r of ranges; track r) {
-            <button [class.active]="rangeMap.get(sym) === r" (click)="setRange(sym, r)">
+            <button [class.active]="rangeMap?.get(sym) === r" (click)="setRange(sym, r)">
               {{ rangeLabels[r] }}
             </button>
           }
         </div>
 
         <!-- chart -->
-        @if ((priceSeries.get(sym) | async); as pts) {
-          @if (pts.length > 1) {
-            <app-line-chart [symbol]="sym" [data]="pts">
-            </app-line-chart>
-          } @else {
-            <p style="color: #666; margin: 2rem 0; text-align: center;">
-              Not enough data for this symbol / range.
-            </p>
+        <div style="position: relative; min-height: 300px;">
+          @if (loadingMap?.get(sym)) {
+            <div style="position: absolute; top: 0; right: 0; padding: 0.5rem;">
+              <span style="color: var(--aurora); font-size: 0.875rem;">Loading...</span>
+            </div>
           }
-        }
+          @if ((priceSeries?.get(sym) | async); as pts) {
+            @if (pts.length > 1) {
+              <app-line-chart [symbol]="sym" [data]="pts">
+              </app-line-chart>
+            } @else {
+              @if (!loadingMap.get(sym)) {
+                <p style="color: #666; margin: 2rem 0; text-align: center;">
+                  Not enough data for this symbol / range.
+                </p>
+              }
+            }
+          }
+        </div>
 
         <!-- chat -->
         <div class="chat">
           <div style="display: flex; gap: 0.5rem; justify-content: center;">
-            <input placeholder="Ask about {{ sym }}…" [formControl]="questionMap.get(sym)" />
+            <input placeholder="Ask about {{ sym }}…" [formControl]="questionMap?.get(sym)!" (keyup.enter)="ask(sym)" />
             <button (click)="ask(sym)">Ask AI</button>
           </div>
 
-          @if ((answerMap.get(sym) | async); as ans) {
+          @if ((answerMap?.get(sym) | async); as ans) {
             <p class="answer">
               {{ ans }}
             </p>
