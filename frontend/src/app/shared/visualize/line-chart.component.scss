@@ -1,5 +1,9 @@
 /* minimal styling for the line‑chart wrapper */
 :host {
-    display: block;
-    margin-bottom: 1.5rem;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    margin: 1rem auto;
+    width: 100%;
+    overflow: hidden;
 }
