@@ -6,7 +6,7 @@ import { Component } from '@angular/core';
  */
 @Component({
     selector: 'app-root',
-    template: '<app-dashboard></app-dashboard>',
+    template: '<app-aurora-background></app-aurora-background><app-dashboard></app-dashboard>',
     standalone: false
 })
 export class AppComponent {}

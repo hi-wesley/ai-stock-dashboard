@@ -3,6 +3,8 @@
     justify-content: center;
     align-items: center;
     min-height: 100vh;
+    position: relative;
+    z-index: 1;
 }
 
 .dashboard-container {
@@ -17,7 +19,9 @@
     position: relative;
     padding: 2rem;
     border-radius: 2rem;
-    background: rgba(255, 255, 255, 0.2);
+    background: rgba(var(--background-rgb), 0.7);
+    backdrop-filter: blur(10px);
+    border: 1px solid rgba(0, 0, 0, 0.1);
     
     &::after {
         content: '';
@@ -26,14 +30,9 @@
         left: 0;
         width: 100%;
         height: 100%;
-        background: rgba(255, 255, 255, 0.1);
+        background: linear-gradient(135deg, rgba(var(--background-rgb), 0.1) 0%, rgba(var(--background-rgb), 0) 100%);
         border-radius: 2rem;
-        backdrop-filter: blur(1px);
-        box-shadow: inset -10px -8px 0px -11px rgba(255, 255, 255, 1),
-                    inset 0px -9px 0px -8px rgba(255, 255, 255, 1);
-        opacity: 0.6;
-        z-index: -1;
-        filter: blur(1px) drop-shadow(10px 4px 6px black) brightness(115%);
+        pointer-events: none;
     }
 }
 
@@ -42,6 +41,39 @@
     gap: 0.5rem;
     margin: 1rem 0;
     justify-content: center;
+    
+    input {
+        background: rgba(var(--background-rgb), 0.9);
+        border: 1px solid rgba(0, 0, 0, 0.2);
+        color: #000000;
+        padding: 0.5rem 1rem;
+        border-radius: 0.5rem;
+        outline: none;
+        transition: all 0.2s;
+        
+        &::placeholder {
+            color: rgba(0, 0, 0, 0.6);
+        }
+        
+        &:focus {
+            border-color: var(--aurora);
+            background: var(--background);
+        }
+    }
+    
+    button {
+        background: rgba(var(--aurora-rgb), 0.5);
+        border: 1px solid var(--aurora);
+        color: #000000;
+        padding: 0.5rem 1.5rem;
+        border-radius: 0.5rem;
+        cursor: pointer;
+        transition: all 0.2s;
+        
+        &:hover {
+            background: rgba(var(--aurora-rgb), 0.7);
+        }
+    }
 }
 
 .row-header {
@@ -49,6 +81,7 @@
     align-items: center;
     gap: 0.5rem;
     justify-content: center;
+    color: #000000;
 }
 
 .remove {
@@ -56,6 +89,13 @@
     border: none;
     cursor: pointer;
     font-size: 1rem;
+    color: #000000;
+    opacity: 0.6;
+    transition: opacity 0.2s;
+    
+    &:hover {
+        opacity: 1;
+    }
 }
 
 .range-bar {
@@ -66,14 +106,20 @@
 
     button {
         padding: 0.25rem 0.5rem;
-        border: 1px solid #888;
-        background: #fafafa;
+        border: 1px solid rgba(0, 0, 0, 0.2);
+        background: rgba(255, 255, 255, 0.8);
+        color: #000000;
         cursor: pointer;
+        transition: all 0.2s;
 
         &.active {
-            background: royalblue;
+            background: rgba(65, 105, 225, 0.5);
             color: #fff;
             border-color: royalblue;
+        }
+        
+        &:hover:not(.active) {
+            background: rgba(var(--background-rgb), 0.9);
         }
     }
 }
@@ -86,12 +132,45 @@
 
     input {
         width: 18rem;
+        background: rgba(var(--background-rgb), 0.9);
+        border: 1px solid rgba(0, 0, 0, 0.2);
+        color: #000000;
+        padding: 0.5rem 1rem;
+        border-radius: 0.5rem;
+        outline: none;
+        transition: all 0.2s;
+        
+        &::placeholder {
+            color: rgba(0, 0, 0, 0.6);
+        }
+        
+        &:focus {
+            border-color: var(--aurora);
+            background: var(--background);
+        }
+    }
+    
+    button {
+        background: rgba(var(--aurora-rgb), 0.5);
+        border: 1px solid var(--aurora);
+        color: #000000;
+        padding: 0.5rem 1rem;
+        border-radius: 0.5rem;
+        cursor: pointer;
+        transition: all 0.2s;
+        
+        &:hover {
+            background: rgba(var(--aurora-rgb), 0.7);
+        }
     }
 
     .answer {
-        margin-top: 0.25rem;
-        color: royalblue;
+        margin-top: 0.5rem;
+        color: #1976D2;
         text-align: center;
+        padding: 0.5rem 1rem;
+        background: rgba(25, 118, 210, 0.08);
+        border-radius: 0.5rem;
     }
 }
 
