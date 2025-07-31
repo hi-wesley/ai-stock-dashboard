@@ -1,11 +1,16 @@
 /**
- * Minimal OpenAI wrapper.
+ * OpenRouter wrapper for DeepSeek model.
  * For real production, implement exponential‑backoff, timeouts, logging.
  */
 import OpenAI from 'openai';
 
 const openai = new OpenAI({
-  apiKey: process.env.OPENAI_API_KEY
+  apiKey: process.env.OPENROUTER_API_KEY,
+  baseURL: 'https://openrouter.ai/api/v1',
+  defaultHeaders: {
+    'HTTP-Referer': process.env.YOUR_SITE_URL || 'http://localhost:3000',
+    'X-Title': 'AI Stock Dashboard',
+  }
 });
 
 export async function askAI(question, context) {
@@ -23,7 +28,7 @@ Data context (JSON): ${JSON.stringify(context).slice(0, 3000)}
 `;
 
   const chat = await openai.chat.completions.create({
-    model: 'gpt-4o-mini',        // cheap, fast; swap for gpt‑4o if budget allows
+    model: 'deepseek/deepseek-chat-v3-0324:free',  // Free DeepSeek model via OpenRouter
     messages: [
       {role: 'system', content: systemPrompt},
       {role: 'user',   content: userPrompt}
