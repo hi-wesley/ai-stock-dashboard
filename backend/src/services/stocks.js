@@ -23,6 +23,8 @@ export async function getHistory(symbol, range, interval) {
     interval,
   });
 
+  console.log('[stocks.js] Raw result from yahoo-finance2:', JSON.stringify(result, null, 2));
+
   // We reduce payload: only send timestamp & close/high/low to the browser
   return result.quotes.map((pt) => ({
     date: pt.date.getTime(),

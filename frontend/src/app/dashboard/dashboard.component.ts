@@ -7,7 +7,7 @@ import { ChatService } from '../core/services/chat.service';
 import { PricePoint } from '../core/models/price-point';
 
 type Range =
-  | '5d' | '1mo' | '6mo' | '1y' | '5y' | 'max';
+  | '1d' | '5d' | '1mo' | '6mo' | '1y' | '5y' | 'max';
 
 @Component({
     selector: 'app-dashboard',
@@ -28,12 +28,13 @@ export class DashboardComponent implements OnInit {
   search = new FormControl('');
 
   /* fixed order of range buttons */
-  readonly ranges: Range[] = ['5d', '1mo', '6mo', '1y', '5y', 'max'];
+  readonly ranges: Range[] = ['1d', '5d', '1mo', '6mo', '1y', '5y', 'max'];
 
   /* display labels for range buttons */
   readonly rangeLabels: Record<Range, string> = {
-    '5d': '1 Day', 
-    '1mo': '1 Week',
+    '1d': '1 Day',
+    '5d': '5 Days',
+    '1mo': '1 Month',
     '6mo': '6 Months',
     '1y': '1 Year',
     '5y': '5 Years',
@@ -77,8 +78,7 @@ export class DashboardComponent implements OnInit {
     const interval = this.pickInterval(range);
 
     const obs = this.stocks
-      .getHistory(sym, range, interval)
-      .pipe(map(arr => arr.slice(-100)));   // keep AI payload small
+      .getHistory(sym, range, interval);
 
     this.priceSeries.set(sym, obs);
   }
@@ -86,12 +86,13 @@ export class DashboardComponent implements OnInit {
   /** Simple heuristic mapping range → interval */
   private pickInterval(r: Range): string {
     switch (r) {
-      case '5d':  return '15m';
-      case '1mo': return '1h';
+      case '1d':  return '5m';
+      case '5d':  return '5m';
+      case '1mo': return '5m';
       case '6mo': return '1d';
-      case '1y':  return '1wk';
-      case '5y':  return '1mo';
-      case 'max': return '3mo';
+      case '1y':  return '1d';
+      case '5y':  return '5d';
+      case 'max': return '1mo';
     }
   }
 
@@ -113,6 +114,7 @@ export class DashboardComponent implements OnInit {
     const series$ = this.priceSeries.get(sym) ?? of([]);
 
     const ans$ = series$.pipe(
+      map(arr => arr.slice(-100)),   // keep AI payload small
       switchMap(series =>
         this.chat.ask(q, { symbol: sym, range, series })
       ),
