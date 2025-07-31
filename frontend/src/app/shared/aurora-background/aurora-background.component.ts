@@ -99,14 +99,15 @@ export class AuroraBackgroundComponent implements OnInit, AfterViewInit {
   }
   
   private initStars(): void {
-    const starCount = 200;
+    const starCount = 30;
     for (let i = 0; i < starCount; i++) {
       this.stars.push({
         x: Math.random() * window.innerWidth,
         y: Math.random() * window.innerHeight,
-        radius: Math.random() * 1.5,
-        speed: Math.random() * 0.5 + 0.1,
-        opacity: Math.random()
+        radius: Math.random() * 1.5 + 0.5,
+        speed: Math.random() * 0.2 + 0.05,
+        opacity: Math.random(),
+        rotation: Math.random() * Math.PI * 2
       });
     }
   }
@@ -122,11 +123,35 @@ export class AuroraBackgroundComponent implements OnInit, AfterViewInit {
       }
       
       star.opacity = Math.sin(Date.now() * 0.001 + star.x) * 0.5 + 0.5;
+      star.rotation += 0.003; // Very slight rotation
+      
+      this.ctx.save();
+      this.ctx.translate(star.x, star.y);
+      this.ctx.rotate(star.rotation);
+      this.ctx.fillStyle = `rgba(${this.starColor}, ${star.opacity * 0.8})`;
+      
+      // Draw a 5-pointed star with less pointy appearance
+      const outerRadius = star.radius * 2.5;
+      const innerRadius = outerRadius * 0.6; // Higher ratio = less pointy
+      const points = 5;
       
       this.ctx.beginPath();
-      this.ctx.arc(star.x, star.y, star.radius, 0, Math.PI * 2);
-      this.ctx.fillStyle = `rgba(${this.starColor}, ${star.opacity * 0.7})`;
+      for (let i = 0; i < points * 2; i++) {
+        const radius = i % 2 === 0 ? outerRadius : innerRadius;
+        const angle = (i * Math.PI) / points - Math.PI / 2;
+        const x = Math.cos(angle) * radius;
+        const y = Math.sin(angle) * radius;
+        
+        if (i === 0) {
+          this.ctx.moveTo(x, y);
+        } else {
+          this.ctx.lineTo(x, y);
+        }
+      }
+      this.ctx.closePath();
+      
       this.ctx.fill();
+      this.ctx.restore();
     });
     
     this.animationId = requestAnimationFrame(() => this.animate());
@@ -146,4 +171,5 @@ interface Star {
   radius: number;
   speed: number;
   opacity: number;
+  rotation: number;
 }
