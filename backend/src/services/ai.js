@@ -1,5 +1,5 @@
 /**
- * OpenRouter wrapper for DeepSeek model.
+ * OpenRouter wrapper for models.
  * For real production, implement exponential‑backoff, timeouts, logging.
  */
 import OpenAI from 'openai';
@@ -13,28 +13,51 @@ const openai = new OpenAI({
   }
 });
 
-export async function askAI(question, context) {
+const MODEL_ID = 'deepseek/deepseek-chat-v3-0324:free';
+
+export async function askAI(question, context, mode = 'chat', stockInfo = {}) {
   /**
    * We pass a short system prompt + a JSONified context array truncated to
    * ~4k tokens. More advanced:  embed & RAG or summarise by time buckets.
    */
-  const systemPrompt = `You are a helpful market‑data assistant.
-Answer with short paragraphs. If asked about a price point, include
-the exact number and date if available.`;
-
-  const userPrompt = `
+  
+  let systemPrompt;
+  let userPrompt;
+  
+  if (mode === 'summary') {
+    // Summary mode with analyst prompt
+    systemPrompt = `You are a financial analyst. Provide a brief summary of ${stockInfo.symbol || 'UNKNOWN'} stock performance. DO NOT mention specific prices, dates, or time periods. Use only general terms like "trending upward", "volatile", "stable", etc. Focus on overall patterns and sentiment. CRITICAL: Your ENTIRE response must be under 500 characters. Be very concise.`;
+    
+    userPrompt = `Summarize the overall trend and sentiment for ${stockInfo.symbol}. Remember: NO specific prices, dates, or time periods. Keep under 500 characters.
+Data context (JSON): ${JSON.stringify(context)}`;
+  } else {
+    // Chat mode with contextual preloading
+    systemPrompt = `You are a financial advisor for ${stockInfo.symbol || 'UNKNOWN'} stock. Answer questions concisely based on the provided data. CRITICAL: Your ENTIRE response must be under 500 characters. Be direct and to the point.`;
+    
+    userPrompt = `
 Question: ${question}
-Data context (JSON): ${JSON.stringify(context).slice(0, 3000)}
+Data context (JSON): ${JSON.stringify(context)}
 `;
+  }
 
   const chat = await openai.chat.completions.create({
-    model: 'deepseek/deepseek-chat-v3-0324:free',  // Free DeepSeek model via OpenRouter
+    model: MODEL_ID,
     messages: [
       {role: 'system', content: systemPrompt},
       {role: 'user',   content: userPrompt}
     ],
-    temperature: 0.3
+    temperature: mode === 'summary' ? 0.3 : 0.5  // Slightly higher temperature for chat
   });
 
-  return chat.choices[0].message.content.trim();
+  return {
+    answer: chat.choices[0].message.content.trim(),
+    model: MODEL_ID
+  };
+}
+
+export function getModelInfo() {
+  return {
+    modelId: MODEL_ID,
+    displayName: MODEL_ID
+  };
 }

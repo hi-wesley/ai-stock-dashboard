@@ -3,7 +3,7 @@ import { FormControl } from '@angular/forms';
 import { Observable, of, switchMap, map, tap, startWith } from 'rxjs';
 
 import { StockService } from '../core/services/stock.service';
-import { ChatService } from '../core/services/chat.service';
+import { ChatService, StockInfo } from '../core/services/chat.service';
 import { PricePoint } from '../core/models/price-point';
 
 type Range =
@@ -26,6 +26,11 @@ export class DashboardComponent implements OnInit {
   loadingMap  = new Map<string, boolean>();              // track loading state
   cachedData  = new Map<string, PricePoint[]>();         // cache last loaded data
   savedAnswers = new Map<string, string>();              // persistent AI answers
+  summaryMap  = new Map<string, Observable<string>>();   // AI summaries
+  summaryLoadingMap = new Map<string, boolean>();        // summary loading states
+  savedSummaries = new Map<string, string>();            // persistent AI summaries
+  modelName = '';                                        // AI model name for display
+  chatLoadingMap = new Map<string, boolean>();           // chat loading states
 
   /* search bar */
   search = new FormControl('');
@@ -51,8 +56,15 @@ export class DashboardComponent implements OnInit {
   ) {}
 
   ngOnInit(): void {
-    // Load saved answers from localStorage
+    // Load saved answers and summaries from localStorage
     this.loadSavedAnswers();
+    this.loadSavedSummaries();
+    
+    // Load model name from localStorage if available
+    const savedModelName = localStorage.getItem('ai-model-name');
+    if (savedModelName) {
+      this.modelName = savedModelName;
+    }
     
     /* ✨ only preload GOOGL */
     this.addSymbol('GOOGL');
@@ -72,6 +84,20 @@ export class DashboardComponent implements OnInit {
     }
   }
 
+  private loadSavedSummaries(): void {
+    const saved = localStorage.getItem('ai-stock-summaries');
+    if (saved) {
+      try {
+        const parsed = JSON.parse(saved);
+        Object.entries(parsed).forEach(([key, value]) => {
+          this.savedSummaries.set(key, value as string);
+        });
+      } catch (e) {
+        console.warn('Failed to parse saved summaries:', e);
+      }
+    }
+  }
+
   /* ------------- add / remove symbols ------------- */
   addSymbol(raw?: string): void {
     const sym = (raw ?? this.search.value)?.trim().toUpperCase();
@@ -87,6 +113,15 @@ export class DashboardComponent implements OnInit {
       this.answerMap.set(sym, of(savedAnswer));
     }
 
+    // Restore saved summary if available, otherwise load new summary
+    const savedSummary = this.savedSummaries.get(sym);
+    if (savedSummary) {
+      this.summaryMap.set(sym, of(savedSummary));
+      // Don't set loading state since we have a saved summary
+    } else {
+      this.loadSummary(sym);
+    }
+
     this.fetchSeries(sym);
     this.search.reset();
   }
@@ -99,10 +134,15 @@ export class DashboardComponent implements OnInit {
     this.answerMap.delete(sym);
     this.loadingMap.delete(sym);
     this.cachedData.delete(sym);
+    this.summaryMap.delete(sym);
+    this.summaryLoadingMap.delete(sym);
+    this.chatLoadingMap.delete(sym);
     
-    // Remove from saved answers
+    // Remove from saved answers and summaries
     this.savedAnswers.delete(sym);
+    this.savedSummaries.delete(sym);
     this.saveAnswersToLocalStorage();
+    this.saveSummariesToLocalStorage();
   }
 
   /* ------------- data fetch ------------- */
@@ -126,6 +166,11 @@ export class DashboardComponent implements OnInit {
           // Clear loading state
           this.loadingMap.set(sym, false);
           this.cdr.markForCheck();
+          
+          // Load summary if not already loaded and we have data
+          if (data.length > 0 && !this.summaryMap.has(sym) && !this.savedSummaries.has(sym)) {
+            this.loadSummary(sym);
+          }
         }),
         // Start with cached data to prevent flicker
         startWith(cached)
@@ -161,20 +206,34 @@ export class DashboardComponent implements OnInit {
     const q = control.value?.trim();
     if (!q) return;
 
+    // Set loading state
+    this.chatLoadingMap.set(sym, true);
+    this.cdr.markForCheck();
+
     const range = this.rangeMap.get(sym) ?? '1mo';
     const series$ = this.priceSeries.get(sym) ?? of([]);
+    const stockInfo: StockInfo = { symbol: sym };
 
     const ans$ = series$.pipe(
-      map(arr => arr.slice(-100)),   // keep AI payload small
+      map(arr => arr.slice(-1000)),   // last 1000 data points
       switchMap(series =>
-        this.chat.ask(q, { symbol: sym, range, series })
+        this.chat.ask(q, { symbol: sym, range, series }, 'chat', stockInfo)
       ),
-      map(r => r.answer),
-      tap(answer => {
+      tap(response => {
+        // Save model name if available
+        if (response.model) {
+          this.modelName = response.model;
+          localStorage.setItem('ai-model-name', response.model);
+          this.cdr.markForCheck();
+        }
         // Save answer to localStorage
-        this.savedAnswers.set(sym, answer);
+        this.savedAnswers.set(sym, response.answer);
         this.saveAnswersToLocalStorage();
-      })
+        // Clear loading state
+        this.chatLoadingMap.set(sym, false);
+        this.cdr.markForCheck();
+      }),
+      map(r => r.answer)
     );
 
     this.answerMap.set(sym, ans$);
@@ -187,5 +246,48 @@ export class DashboardComponent implements OnInit {
       answersObj[key] = value;
     });
     localStorage.setItem('ai-stock-answers', JSON.stringify(answersObj));
+  }
+
+  private saveSummariesToLocalStorage(): void {
+    const summariesObj: Record<string, string> = {};
+    this.savedSummaries.forEach((value, key) => {
+      summariesObj[key] = value;
+    });
+    localStorage.setItem('ai-stock-summaries', JSON.stringify(summariesObj));
+  }
+
+  private loadSummary(sym: string): void {
+    // Set loading state
+    this.summaryLoadingMap.set(sym, true);
+    this.cdr.markForCheck();
+
+    // Use 1y range for summary to show broader performance
+    const summaryRange = '1y';
+    const stockInfo: StockInfo = { symbol: sym };
+
+    // Fetch 1y data specifically for summary
+    const summary$ = this.stocks.getHistory(sym, summaryRange, '1d').pipe(
+      map(arr => arr.slice(-1000)),   // last 1000 data points
+      switchMap(series =>
+        this.chat.getSummary({ symbol: sym, range: summaryRange, series }, stockInfo)
+      ),
+      tap(response => {
+        // Save model name if available
+        if (response.model) {
+          this.modelName = response.model;
+          localStorage.setItem('ai-model-name', response.model);
+          this.cdr.markForCheck();
+        }
+        // Save summary to localStorage
+        this.savedSummaries.set(sym, response.answer);
+        this.saveSummariesToLocalStorage();
+        // Clear loading state
+        this.summaryLoadingMap.set(sym, false);
+        this.cdr.markForCheck();
+      }),
+      map(r => r.answer)
+    );
+
+    this.summaryMap.set(sym, summary$);
   }
 }

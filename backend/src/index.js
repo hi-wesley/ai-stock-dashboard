@@ -9,7 +9,7 @@ import express from 'express';
 import cors from 'cors';
 import 'dotenv/config';           // loads .env into process.env
 import {getHistory} from './services/stocks.js';
-import {askAI} from './services/ai.js';
+import {askAI, getModelInfo} from './services/ai.js';
 
 const app = express();
 app.use(cors());                  // allow Angular dev‑server http://localhost:4200
@@ -40,14 +40,27 @@ app.get('/api/stocks/:symbol', async (req, res) => {
 app.post('/api/chat', async (req, res) => {
   /**
    * Body:
-   *   { question: string, context: { symbol: 'GOOGL', range:'1d', series:[...] } }
+   *   { 
+   *     question: string, 
+   *     context: { symbol: 'GOOGL', range:'1d', series:[...] },
+   *     mode?: 'chat' | 'summary',
+   *     stockInfo?: { symbol: string, name?: string }
+   *   }
    */
-  const {question, context} = req.body;
-  if (!question) return res.status(400).json({error: 'Question missing.'});
+  const {question, context, mode = 'chat', stockInfo} = req.body;
+  
+  // For summary mode, question is optional
+  if (mode === 'chat' && !question) {
+    return res.status(400).json({error: 'Question missing for chat mode.'});
+  }
 
   try {
-    const answer = await askAI(question, context);
-    res.json({answer});
+    const result = await askAI(question || '', context, mode, stockInfo);
+    const modelInfo = getModelInfo();
+    res.json({
+      answer: result.answer,
+      model: modelInfo.modelId
+    });
   } catch (err) {
     console.error(err);
     res.status(500).json({error: 'AI request failed'});

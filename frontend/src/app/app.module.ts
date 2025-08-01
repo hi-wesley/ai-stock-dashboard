@@ -10,6 +10,7 @@ import { DashboardComponent } from './dashboard/dashboard.component';
 import { LineChartComponent } from './shared/visualize/line-chart.component';
 import { AuroraBackgroundComponent } from './shared/aurora-background/aurora-background.component';
 import { SplitTextDirective } from './shared/directives/split-text.directive';
+import { MarkdownPipe } from './shared/pipes/markdown.pipe';
 
 @NgModule({
   declarations: [
@@ -17,7 +18,8 @@ import { SplitTextDirective } from './shared/directives/split-text.directive';
     DashboardComponent,
     LineChartComponent,
     AuroraBackgroundComponent,
-    SplitTextDirective
+    SplitTextDirective,
+    MarkdownPipe
   ],
   imports: [
     BrowserModule,
