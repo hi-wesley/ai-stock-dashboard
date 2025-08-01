@@ -99,7 +99,7 @@ export class AuroraBackgroundComponent implements OnInit, AfterViewInit {
   }
   
   private initStars(): void {
-    const starCount = 30;
+    const starCount = 69;
     for (let i = 0; i < starCount; i++) {
       this.stars.push({
         x: Math.random() * window.innerWidth,

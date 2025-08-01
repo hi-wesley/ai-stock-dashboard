@@ -1,6 +1,6 @@
 import { ChangeDetectionStrategy, Component, OnInit, ChangeDetectorRef } from '@angular/core';
 import { FormControl } from '@angular/forms';
-import { Observable, of, switchMap, map, tap, startWith } from 'rxjs';
+import { Observable, of, switchMap, map, tap, startWith, catchError } from 'rxjs';
 
 import { StockService } from '../core/services/stock.service';
 import { ChatService, StockInfo } from '../core/services/chat.service';
@@ -103,27 +103,47 @@ export class DashboardComponent implements OnInit {
     const sym = (raw ?? this.search.value)?.trim().toUpperCase();
     if (!sym || this.symbols.includes(sym)) return;
 
-    this.symbols = [...this.symbols, sym];    // new reference → OnPush
-    this.rangeMap.set(sym, '5y');            // default
-    this.questionMap.set(sym, new FormControl(''));
+    // First validate the ticker before adding
+    this.validateAndAddSymbol(sym);
+  }
 
-    // Restore saved answer if available
-    const savedAnswer = this.savedAnswers.get(sym);
-    if (savedAnswer) {
-      this.answerMap.set(sym, of(savedAnswer));
-    }
+  private validateAndAddSymbol(sym: string): void {
+    // Test fetch with minimal data to validate ticker
+    this.stocks.getHistory(sym, '5d', '1d')
+      .pipe(
+        tap(() => {
+          // Valid ticker - add it to the dashboard
+          this.symbols = [...this.symbols, sym];
+          this.rangeMap.set(sym, '5y');
+          this.questionMap.set(sym, new FormControl(''));
 
-    // Restore saved summary if available, otherwise load new summary
-    const savedSummary = this.savedSummaries.get(sym);
-    if (savedSummary) {
-      this.summaryMap.set(sym, of(savedSummary));
-      // Don't set loading state since we have a saved summary
-    } else {
-      this.loadSummary(sym);
-    }
+          // Restore saved answer if available
+          const savedAnswer = this.savedAnswers.get(sym);
+          if (savedAnswer) {
+            this.answerMap.set(sym, of(savedAnswer));
+          }
 
-    this.fetchSeries(sym);
-    this.search.reset();
+          // Restore saved summary if available, otherwise load new summary
+          const savedSummary = this.savedSummaries.get(sym);
+          if (savedSummary) {
+            this.summaryMap.set(sym, of(savedSummary));
+          } else {
+            this.loadSummary(sym);
+          }
+
+          this.fetchSeries(sym);
+          this.search.reset();
+          this.cdr.markForCheck();
+        }),
+        catchError(error => {
+          // Invalid ticker - show browser alert
+          console.error(`Invalid ticker: ${sym}`, error);
+          alert(`Invalid ticker symbol: ${sym}`);
+          
+          return of(null);
+        })
+      )
+      .subscribe();
   }
 
   removeSymbol(sym: string): void {
