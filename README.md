@@ -1,93 +1,139 @@
 # AI Stock Dashboard
 
-![Screenshot](https://i.imgur.com/NwDWa9l.png)
+[Link to AI Stock Dashboard](https://wesleys-stock-dashboard.vercel.app/)
 
-## Project Overview
+![Screenshot](https://i.imgur.com/c1ZkQQm.png)
 
-The AI Stock Dashboard is a web-based application designed to provide users with a powerful tool for stock analysis, leveraging the capabilities of AI to offer insights and answer questions about stock performance. The dashboard allows users to track multiple stock symbols, view historical price data across different time ranges, and interact with an AI-powered chat to gain deeper insights into the data.
+A real-time stock market dashboard with AI-powered insights, featuring interactive charts, automated summaries, and conversational analysis. Built with Angular frontend and Node.js backend, designed for scalable deployment on Vercel.
 
-The primary goal of this project is to create a responsive, user-friendly interface for visualizing stock data and to integrate an AI assistant that can provide contextual analysis and answer user queries in natural language.
+---
 
-## Key Features
+## Technology Stack
 
-*   **Real-time Stock Tracking**: Add and remove stock symbols to a dynamic dashboard.
-*   **Historical Price Charts**: Visualize historical stock prices with interactive charts.
-*   **Customizable Time Ranges**: View data across multiple time ranges, from a single day to the maximum available history.
-*   **AI-Powered Chat**: Ask questions about stock performance and receive AI-generated answers based on the visible data.
-*   **Responsive Design**: A clean and intuitive interface that works seamlessly across different devices.
+| Area      | Technology                                                                                             |
+| :-------- | :----------------------------------------------------------------------------------------------------- |
+| **Backend** | [Node.js](https://nodejs.org/), [Express](https://expressjs.com/), [Yahoo Finance API](https://github.com/gadicc/node-yahoo-finance2) |
+| **Frontend**| [Angular 20](https://angular.io/), [TypeScript](https://www.typescriptlang.org/), [ngx-charts](https://swimlane.github.io/ngx-charts/) |
+| **AI**      | [OpenRouter](https://openrouter.ai/) (DeepSeek Chat v3) for market analysis and summaries              |
+| **Deployment**| [Vercel](https://vercel.com/) for both frontend and serverless backend functions                     |
+| **Styling** | Custom CSS with Glass Morphism, Aurora Effects, CSS Animations                                        |
+| **Data**    | Real-time stock data from Yahoo Finance, Local Storage for persistent AI responses                    |
 
-## Tech Stack
+---
 
-### Backend
+## Architecture
 
-*   **Node.js**: A JavaScript runtime for building the server-side application.
-*   **Express**: A fast and minimalist web framework for Node.js, used to create the REST API.
-*   **yahoo-finance2**: A library for fetching historical stock data from Yahoo Finance.
-*   [yahoo-finance2 docs](https://github.com/gadicc/node-yahoo-finance2/blob/devel/docs/modules/chart.md)
-*   **OpenAI API**: Used for the AI-powered chat functionality.
+This project is a monorepo containing both backend and frontend applications with a modern, scalable architecture.
 
-### Frontend
+-   **Backend:** A Node.js/Express API deployed as **Vercel Serverless Functions**. It handles stock data fetching from Yahoo Finance and orchestrates AI analysis through OpenRouter.
+-   **Frontend:** An Angular application built with standalone components, deployed as a static site to **Vercel**. It provides real-time stock visualization and AI-powered insights.
+-   **Data Flow:** Stock data is fetched server-side to protect API keys. AI processing happens on the backend with responses cached locally for performance.
+-   **AI Integration:** Market analysis is powered by **DeepSeek Chat v3** via OpenRouter, providing both automated summaries and interactive Q&A.
 
-*   **Angular**: A powerful framework for building single-page applications.
-*   **ngx-charts**: A declarative charting framework for Angular.
-*   **TypeScript**: A typed superset of JavaScript that compiles to plain JavaScript.
-*   **SCSS**: A preprocessor scripting language that is interpreted or compiled into Cascading Style Sheets (CSS).
+### Data Flow Architecture
 
-## Installation & Setup
+```mermaid
+sequenceDiagram
+    participant User
+    participant Frontend
+    participant Vercel Functions
+    participant Yahoo Finance
+    participant OpenRouter AI
+    participant LocalStorage
 
-### Prerequisites
+    User->>Frontend: Enters stock ticker (e.g., GOOGL)
+    Frontend->>Vercel Functions: Request stock data
+    Vercel Functions->>Yahoo Finance: Fetch historical data
+    Yahoo Finance-->>Vercel Functions: Return price series
+    Vercel Functions-->>Frontend: Stock data (JSON)
+    Frontend->>LocalStorage: Cache data
+    Frontend->>Frontend: Render interactive chart
+    
+    Note over Frontend: Auto-generate summary on load
+    Frontend->>Vercel Functions: Request AI summary
+    Vercel Functions->>OpenRouter AI: Analyze stock performance
+    OpenRouter AI-->>Vercel Functions: AI summary
+    Vercel Functions-->>Frontend: Summary response
+    Frontend->>LocalStorage: Save summary
+    
+    User->>Frontend: Asks question about stock
+    Frontend->>Vercel Functions: Send question + context
+    Vercel Functions->>OpenRouter AI: Process with DeepSeek
+    OpenRouter AI-->>Vercel Functions: AI response
+    Vercel Functions-->>Frontend: Chat answer
+    Frontend->>LocalStorage: Save answer
+```
 
-*   [Node](https://nodejs.org/)
-*   [OpenAI API key](https://platform.openai.com/settings/organization/api-keys)
+---
 
-### Backend Setup
+## Features
 
-1.  **Navigate to the backend directory**:
-    ```bash
-    cd backend
-    ```
+-   **Real-Time Stock Tracking:** Monitor multiple stocks simultaneously with price data
+-   **Interactive Charts:** Responsive line charts with multiple time ranges (1 day to all-time)
+-   **AI-Powered Summaries:** Automatic performance analysis for each tracked stock
+-   **Conversational AI:** Ask questions about stock performance and get instant insights
+-   **Persistent Storage:** AI responses cached locally for instant access
+-   **Error Handling:** Graceful handling of invalid tickers with user-friendly alerts
+-   **Virtual Scrolling:** Efficient rendering of multiple stock panels
 
-2.  **Install the dependencies**:
-    ```bash
-    npm install
-    ```
+---
 
-3.  **Create a `.env` file** in the `backend` directory and add your OpenAI API key:
-    ```
-    OPENAI_API_KEY=your_api_key_here
-    ```
+## API Endpoints
 
-4.  **Start the backend server**:
-    ```bash
-    npm start
-    ```
-    The server will be running at `http://localhost:3000`.
+All endpoints are accessed through Vercel Functions.
 
-### Frontend Setup
+| Method | Endpoint                       | Description                                                              | Auth Required |
+| :----- | :----------------------------- | :----------------------------------------------------------------------- | :------------ |
+| `GET`  | `/api/stocks/:symbol`          | Fetches historical stock data for a given symbol                        | No            |
+| `POST` | `/api/chat`                    | Processes AI queries about stock data                                   | No            |
 
-1.  **Navigate to the frontend directory**:
-    ```bash
-    cd frontend
-    ```
+### Request/Response Examples
 
-2.  **Install the dependencies**:
-    ```bash
-    npm install
-    ```
+#### Get Stock Data
+```bash
+GET /api/stocks/GOOGL?range=1mo&interval=1d
+```
 
-3.  **Start the frontend development server**:
-    ```bash
-    npm start
-    ```
-    The application will be available at `http://localhost:4200`.
+Response:
+```json
+[
+  {
+    "date": 1703980800000,
+    "close": 142.57,
+    "high": 143.16,
+    "low": 141.10
+  },
+  ...
+]
+```
 
-## Usage Examples
+#### AI Chat
+```bash
+POST /api/chat
+Content-Type: application/json
 
-Once the application is running, you can perform the following actions:
+{
+  "question": "What's the trend for GOOGL?",
+  "context": {
+    "symbol": "GOOGL",
+    "range": "1mo",
+    "series": [...]
+  },
+  "mode": "chat",
+  "stockInfo": { "symbol": "GOOGL" }
+}
+```
 
-*   **Add a stock**: Enter a stock symbol (e.g., `GOOGL`, `NVDA`, `SCHG`) in the search bar and click "Add".
-*   **Change the time range**: Click on the time range buttons (e.g., `1d`, `1y`, `max`) to view different historical data.
-*   **Ask the AI a question**: Type a question into the chat input (e.g., "What was the highest price in the last month?") and click "Ask AI".
+Response:
+```json
+{
+  "answer": "GOOGL has shown steady upward momentum over the past month...",
+  "model": "deepseek/deepseek-chat-v3-0324:free"
+}
+```
+
+---
 
 ## License
-This repository is provided under the [MIT License](LICENSE).
+
+This project is licensed under the MIT License. See the [LICENSE](LICENSE) file for details.
