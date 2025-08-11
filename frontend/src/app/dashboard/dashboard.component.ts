@@ -112,8 +112,8 @@ export class DashboardComponent implements OnInit {
     this.stocks.getHistory(sym, '5d', '1d')
       .pipe(
         tap(() => {
-          // Valid ticker - add it to the dashboard
-          this.symbols = [...this.symbols, sym];
+          // Valid ticker - add it to the dashboard (prepend to show at top)
+          this.symbols = [sym, ...this.symbols];
           this.rangeMap.set(sym, '5y');
           this.questionMap.set(sym, new FormControl(''));
 
