@@ -9,7 +9,7 @@
   <cdk-virtual-scroll-viewport itemSize="660" class="viewport" style="height: calc(100vh - 200px); display: block; width: 100%;">
 
     <div *cdkVirtualFor="let sym of symbols" class="chart-section">
-      <div class="glass stock-container" style="width: 100%; max-width: 1200px; margin: 1rem auto; position: relative;">
+      <div class="glass stock-container" style="margin: 1rem auto; position: relative;">
         <button class="remove" style="position: absolute; top: 1rem; right: 1rem;" (click)="removeSymbol(sym)">✖</button>
         <h2 class="row-header split-text">
           <span *ngFor="let char of sym.split(''); let i = index" 
